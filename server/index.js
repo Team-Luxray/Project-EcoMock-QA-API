@@ -13,7 +13,7 @@ app.use(cors());
 // routes
 app.use('/api', router);
 
-// listed to port
+// listen to port
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
 });
