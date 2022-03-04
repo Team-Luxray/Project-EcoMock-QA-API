@@ -124,7 +124,7 @@ router.put('/qa/questions/:question_id/helpful', async (req, res) => {
       WHERE question_id = $1`,
       [question_id]
     );
-    res.status(200).send(`successfully marked question ${question_id} as helpful`);
+    res.status(204).send(`successfully marked question ${question_id} as helpful`);
   } catch (error) {
     res.status(400).send(error);
   }
@@ -140,7 +140,7 @@ router.put('/qa/questions/:question_id/report', async (req, res) => {
       WHERE question_id = $1`,
       [question_id]
     );
-    res.status(200).send(`successfully reported question ${question_id}`);
+    res.status(204).send(`successfully reported question ${question_id}`);
   } catch (error) {
     res.status(400).send(error);
   }
@@ -156,7 +156,7 @@ router.put('/qa/answers/:answer_id/helpful', async (req, res) => {
       WHERE answer_id = $1`,
       [answer_id]
     );
-    res.status(200).send(`successfully marked answer ${answer_id} as helpful`);
+    res.status(204).send(`successfully marked answer ${answer_id} as helpful`);
   } catch (error) {
     res.status(400).send(error);
   }
@@ -172,7 +172,7 @@ router.put('/qa/answers/:answer_id/report', async (req, res) => {
       WHERE answer_id = $1`,
       [answer_id]
     );
-    res.status(200).send(`successfully reported answer ${answer_id}`);
+    res.status(204).send(`successfully reported answer ${answer_id}`);
   } catch (error) {
     res.status(400).send(error);
   }
