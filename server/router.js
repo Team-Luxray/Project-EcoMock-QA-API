@@ -85,15 +85,14 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
 // route to add a question for a given product
 router.post('/qa/questions', async (req, res) => {
   try {
-    console.log(`REQ BODY: ${JSON.stringify(req.body)}`);
     const { product_id, question_body, asker_name, asker_email } = req.body;
-    let queryArgs = [product_id, question_body, asker_name, asker_email];
-    const { rows } = await db.query(
+    const queryArgs = [product_id, question_body, asker_name, asker_email];
+    const postedQuestion = await db.query(
       `INSERT INTO questions (product_id, question_body, question_date_written, asker_name, asker_email, question_reported, question_helpful)
       VALUES ($1, $2, current_timestamp, $3, $4, FALSE, 0)`,
       queryArgs
     );
-    res.status(201).send(rows);
+    res.status(201).send(`successfully posted question: ${question_body}`);
   } catch (error) {
     res.status(400).send(error);
   }
@@ -103,14 +102,19 @@ router.post('/qa/questions', async (req, res) => {
 router.post('/qa/questions/:question_id/answers', async (req, res) => {
   try {
     const { question_id } = req.params;
-    const { answer_body, answerer_name, answerer_email } = req.body;
-    let queryArgs = [question_id, answer_body, answerer_name, answerer_email];
-    const { rows } = await db.query(
+    const { answer_body, answerer_name, answerer_email/*, answer_photos*/ } = req.body;
+    const queryArgs = [question_id, answer_body, answerer_name, answerer_email];
+    const postedAnswer = await db.query(
       `INSERT INTO answers (question_id, answer_body, answer_date_written, answerer_name, answerer_email, answer_reported, answer_helpful)
-      VALUES ($1, $2, current_timestamp, $3, $4, FALSE, 0)`,
+      VALUES ($1, $2, current_timestamp, $3, $4, FALSE, 0)
+      RETURNING answer_id`,
       queryArgs
     );
-    res.status(201).send(rows);
+    // const photo_answer_id = postedAnswer.rows[0].answer_id
+    // const postedPhotos = answer_photos.forEach((photo) => {
+
+    // })
+    res.status(201).send(`successfully posted answer: ${answer_body}`);
   } catch (error) {
     res.status(400).send(error);
   }
