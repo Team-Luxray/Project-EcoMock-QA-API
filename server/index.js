@@ -7,8 +7,8 @@ const cors = require('cors');
 
 // middleware
 app.use(express.json());
-app.use(morgan('dev'));
 app.use(cors());
+app.use(morgan('dev'));
 
 // routes
 app.use('/api', router);

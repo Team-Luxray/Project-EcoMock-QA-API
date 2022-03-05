@@ -85,11 +85,13 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
 // route to add a question for a given product
 router.post('/qa/questions', async (req, res) => {
   try {
+    console.log(`REQ BODY: ${JSON.stringify(req.body)}`);
     const { product_id, question_body, asker_name, asker_email } = req.body;
+    let queryArgs = [product_id, question_body, asker_name, asker_email];
     const { rows } = await db.query(
-      `INSERT INTO questions
-      VALUES(null, $1, $2, SELECT now()::timestamp, $3, $4, false, 0)`,
-      [product_id, question_body, asker_name, asker_email]
+      `INSERT INTO questions (product_id, question_body, question_date_written, asker_name, asker_email, question_reported, question_helpful)
+      VALUES ($1, $2, current_timestamp, $3, $4, FALSE, 0)`,
+      queryArgs
     );
     res.status(201).send(rows);
   } catch (error) {
@@ -102,10 +104,11 @@ router.post('/qa/questions/:question_id/answers', async (req, res) => {
   try {
     const { question_id } = req.params;
     const { answer_body, answerer_name, answerer_email } = req.body;
+    let queryArgs = [question_id, answer_body, answerer_name, answerer_email];
     const { rows } = await db.query(
-      `INSERT INTO questions
-      VALUES(null, $1, $2, SELECT now()::timestamp, $3, $4, false, 0)`,
-      [question_id, answer_body, answerer_name, answerer_email]
+      `INSERT INTO answers (question_id, answer_body, answer_date_written, answerer_name, answerer_email, answer_reported, answer_helpful)
+      VALUES ($1, $2, current_timestamp, $3, $4, FALSE, 0)`,
+      queryArgs
     );
     res.status(201).send(rows);
   } catch (error) {

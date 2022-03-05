@@ -94,13 +94,12 @@ DELIMITER ','
 CSV HEADER;
 
 -- insert transformed raw data into processed data tables
-INSERT INTO products (product_id, product_name)
-SELECT id, name
+INSERT INTO products (product_name)
+SELECT name
 FROM products_csv;
 
-
-INSERT INTO questions (question_id, product_id, question_body, question_date_written, asker_name, asker_email, question_reported, question_helpful)
-SELECT id, product_id, body, to_timestamp(date_written / 1000), asker_name, asker_email, reported, helpful
+INSERT INTO questions ( product_id, question_body, question_date_written, asker_name, asker_email, question_reported, question_helpful)
+SELECT product_id, body, to_timestamp(date_written / 1000), asker_name, asker_email, reported, helpful
 FROM questions_csv;
 
 ALTER TABLE questions
@@ -110,8 +109,8 @@ WHEN question_reported = 1 THEN TRUE
 ELSE NULL
 END;
 
-INSERT INTO answers (answer_id, question_id, answer_body, answer_date_written, answerer_name, answerer_email, answer_reported, answer_helpful)
-SELECT id, question_id, body, to_timestamp(date_written / 1000), answerer_name, answerer_email, reported, helpful
+INSERT INTO answers (question_id, answer_body, answer_date_written, answerer_name, answerer_email, answer_reported, answer_helpful)
+SELECT question_id, body, to_timestamp(date_written / 1000), answerer_name, answerer_email, reported, helpful
 FROM answers_csv;
 
 ALTER TABLE answers
@@ -121,6 +120,6 @@ WHEN answer_reported = 1 THEN TRUE
 ELSE NULL
 END;
 
-INSERT INTO photos (photo_id, answer_id, photo_url)
-SELECT id, answer_id, url
+INSERT INTO photos (answer_id, photo_url)
+SELECT answer_id, url
 FROM photos_csv;
