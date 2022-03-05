@@ -1,6 +1,5 @@
 const Router = require('express-promise-router');
 const db = require('../database');
-// const controllers = require('./controllers');
 
 // create a new express-promise-router
 // this has the same API as the normal express router except
