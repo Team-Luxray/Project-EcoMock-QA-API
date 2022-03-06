@@ -15,42 +15,38 @@ router.get('/qa/questions', async (req, res) => {
     const { product_id } = req.query;
     const { rows } = await db.query(
       `SELECT
-      q.product_id,
       q.question_id,
       q.question_body,
       q.question_date_written,
       q.asker_name,
       q.question_reported,
       q.question_helpful,
-      aap.answer_id,
-      aap.answer_body,
-      aap.answer_date_written,
-      aap.answerer_name,
-      aap.answer_reported,
-      aap.answer_helpful,
-      aap.photo_id,
-      aap.photo_url
+      json_agg(
+        DISTINCT aap.*
+      ) AS answers
       FROM questions AS q
       LEFT JOIN (
         SELECT
-        a.answer_id,
         a.question_id,
+        a.answer_id,
         a.answer_body,
         a.answer_date_written,
         a.answerer_name,
         a.answer_reported,
         a.answer_helpful,
-        ap.photo_id,
-        ap.photo_url
+        json_build_object(
+          'urls', array_remove(array_agg(DISTINCT ap.photo_url), NULL)
+        ) AS photos
         FROM answers AS a
         LEFT JOIN photos AS ap
         ON a.answer_id = ap.answer_id
         WHERE a.answer_reported = false
+        GROUP BY a.answer_id
       ) AS aap
       ON q.question_id = aap.question_id
       WHERE q.product_id = $1
       AND q.question_reported = false
-`,
+      GROUP BY q.question_id`,
       [product_id]
     );
     res.status(200).send(rows);
@@ -60,18 +56,7 @@ router.get('/qa/questions', async (req, res) => {
 });
 
 // route to list answers for a given question
-// TODO: add GROUP BY and ORDER BY
 // TODO: add page and count parameters
-
-// json_build_object(
-//   'answer_id', a.answer_id,
-//   'answer_body', a.answer_body,
-//   'answer_date_written', a.answer_date_written,
-//   'answerer_name', a.answerer_name,
-//   'answer_reported', a.answer_reported,
-//   'answer_helpful', a.answer_helpful,
-//   'photos', array_remove(array_agg(DISTINCT ap.*), NULL)
-// )
 router.get('/qa/questions/:question_id/answers', async (req, res) => {
   try {
     const { question_id } = req.params;
@@ -94,7 +79,11 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
       GROUP BY a.answer_id`,
       [question_id]
     );
-    res.status(200).send(rows);
+    const result = {
+      question_id: question_id,
+      results: rows
+    }
+    res.status(200).send(result);
   } catch (error) {
     res.status(400).send(error);
   }
