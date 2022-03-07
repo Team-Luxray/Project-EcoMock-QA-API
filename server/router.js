@@ -22,7 +22,15 @@ router.get('/qa/questions', async (req, res) => {
       q.question_reported,
       q.question_helpful,
       json_agg(
-        DISTINCT aap.*
+        json_build_object(
+          'answer_id', aap.answer_id,
+          'answer_body', aap.answer_body,
+          'answer_date_written', aap.answer_date_written,
+          'answerer_name', aap.answerer_name,
+          'answer_reported', aap.answer_reported,
+          'answer_helpful', aap.answer_helpful,
+          'answer_photos', aap.answer_photos
+        )
       ) AS answers
       FROM questions AS q
       LEFT JOIN (
@@ -36,7 +44,7 @@ router.get('/qa/questions', async (req, res) => {
         a.answer_helpful,
         json_build_object(
           'urls', array_remove(array_agg(DISTINCT ap.photo_url), NULL)
-        ) AS photos
+        ) AS answer_photos
         FROM answers AS a
         LEFT JOIN photos AS ap
         USING (answer_id)
@@ -51,7 +59,13 @@ router.get('/qa/questions', async (req, res) => {
       OFFSET $3`,
       [product_id, count, offset]
     );
-    res.status(200).send(rows);
+    const result = {
+      product_id: product_id,
+      page: page,
+      count: count,
+      results: rows
+    }
+    res.status(200).send(result);
   } catch (error) {
     res.status(400).send(error);
   }
@@ -74,7 +88,7 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
       a.answer_helpful,
       json_build_object(
         'urls', array_remove(array_agg(DISTINCT ap.photo_url), NULL)
-      ) AS photos
+      ) AS answer_photos
       FROM answers AS a
       LEFT JOIN photos AS ap
       USING (answer_id)
@@ -87,6 +101,8 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
     );
     const result = {
       question_id: question_id,
+      page: page,
+      count: count,
       results: rows
     }
     res.status(200).send(result);
