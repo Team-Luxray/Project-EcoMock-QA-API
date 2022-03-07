@@ -98,7 +98,7 @@ INSERT INTO products (product_name)
 SELECT name
 FROM products_csv;
 
-INSERT INTO questions ( product_id, question_body, question_date_written, asker_name, asker_email, question_reported, question_helpful)
+INSERT INTO questions (product_id, question_body, question_date_written, asker_name, asker_email, question_reported, question_helpful)
 SELECT product_id, body, to_timestamp(date_written / 1000), asker_name, asker_email, reported, helpful
 FROM questions_csv;
 
@@ -123,3 +123,9 @@ END;
 INSERT INTO photos (answer_id, photo_url)
 SELECT answer_id, url
 FROM photos_csv;
+
+-- create fk index for question_id on answers table
+CREATE INDEX answers_question_id_idx ON answers (question_id)
+
+-- create fk index for answer_id on photos table
+CREATE INDEX photos_answer_id_idx ON photos (answer_id)

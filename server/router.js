@@ -6,13 +6,13 @@ const db = require('../database');
 // it allows you to use async functions as route handlers
 const router = new Router();
 
-// ap.photo_url
 // route to list questions and answers for a given product
-// TODO: add GROUP BY and ORDER BY
-// TODO: add page and count parameters
 router.get('/qa/questions', async (req, res) => {
   try {
-    const { product_id } = req.query;
+    const product_id = req.query.product_id;
+    const page = req.query.page || 1;
+    const count = req.query.count || 5;
+    const offset = count * page - count
     const { rows } = await db.query(
       `SELECT
       q.question_id,
@@ -39,15 +39,17 @@ router.get('/qa/questions', async (req, res) => {
         ) AS photos
         FROM answers AS a
         LEFT JOIN photos AS ap
-        ON a.answer_id = ap.answer_id
+        USING (answer_id)
         WHERE a.answer_reported = false
         GROUP BY a.answer_id
       ) AS aap
-      ON q.question_id = aap.question_id
+      USING (question_id)
       WHERE q.product_id = $1
       AND q.question_reported = false
-      GROUP BY q.question_id`,
-      [product_id]
+      GROUP BY q.question_id
+      LIMIT $2
+      OFFSET $3`,
+      [product_id, count, offset]
     );
     res.status(200).send(rows);
   } catch (error) {
@@ -56,10 +58,12 @@ router.get('/qa/questions', async (req, res) => {
 });
 
 // route to list answers for a given question
-// TODO: add page and count parameters
 router.get('/qa/questions/:question_id/answers', async (req, res) => {
   try {
     const { question_id } = req.params;
+    const page = req.query.page || 1;
+    const count = req.query.count || 5;
+    const offset = count * page - count
     const { rows } = await db.query(
       `SELECT
       a.answer_id,
@@ -73,11 +77,13 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
       ) AS photos
       FROM answers AS a
       LEFT JOIN photos AS ap
-      ON a.answer_id = ap.answer_id
+      USING (answer_id)
       WHERE a.question_id = $1
       AND a.answer_reported = false
-      GROUP BY a.answer_id`,
-      [question_id]
+      GROUP BY a.answer_id
+      LIMIT $2
+      OFFSET $3`,
+      [question_id, count, offset]
     );
     const result = {
       question_id: question_id,
