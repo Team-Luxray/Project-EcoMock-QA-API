@@ -5,17 +5,13 @@ import { Counter } from 'k6/metrics';
 export const requests = new Counter('http_reqs');
 
 export const options = {
-  vus: 100,
-  duration: '15s'
+  // vus: 100,
+  // duration: '15s'
+  stages: [{duration: '5s', target: 100}, {duration: '10s', target: 500}]
 };
 
-
-function getRandomQuestionId() {
-  return Math.floor(Math.random() * 3518966);
-}
-
 export default function () {
-  const res = http.get(`http://localhost:3000/api/qa/questions/${getRandomQuestionId()}/answers`);
+  const res = http.get('http://localhost:3000/api/qa/questions');
   check(res, {
     'status was 200': (r) => r.status === 200,
     'transaction time < 50ms': r => r.timings.duration < 50,
