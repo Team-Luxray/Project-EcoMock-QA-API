@@ -74,22 +74,22 @@ CREATE TABLE photos (
 
 -- add CSV data to raw data tables
 COPY products_csv(id, name, slogan, description, category, default_price)
-FROM '/Users/samanthapham/Documents/hack_reactor/sdc-samantha/product.csv'
+FROM '/home/ubuntu/qa_api_data/product.csv'
 DELIMITER ','
 CSV HEADER;
 
 COPY questions_csv(id, product_id, body, date_written, asker_name, asker_email, reported, helpful)
-FROM '/Users/samanthapham/Documents/hack_reactor/sdc-samantha/questions.csv'
+FROM '/home/ubuntu/qa_api_data/questions.csv'
 DELIMITER ','
 CSV HEADER;
 
 COPY answers_csv(id, question_id, body, date_written, answerer_name, answerer_email, reported, helpful)
-FROM '/Users/samanthapham/Documents/hack_reactor/sdc-samantha/answers.csv'
+FROM '/home/ubuntu/qa_api_data/answers.csv'
 DELIMITER ','
 CSV HEADER;
 
 COPY photos_csv(id, answer_id, url)
-FROM '/Users/samanthapham/Documents/hack_reactor/sdc-samantha/answers_photos.csv'
+FROM '/home/ubuntu/qa_api_data/answers_photos.csv'
 DELIMITER ','
 CSV HEADER;
 
