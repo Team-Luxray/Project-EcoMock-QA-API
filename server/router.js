@@ -50,8 +50,6 @@ router.get('/qa/questions', async (req, res) => {
     );
     const result = {
       product_id: product_id,
-      page: page,
-      count: count,
       results: rows
     }
     res.status(200).send(result);
