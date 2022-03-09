@@ -15,6 +15,7 @@ function getRandomQuestionId() {
 
 export default function () {
   const res = http.get(`http://localhost:3000/api/qa/questions/${getRandomQuestionId()}/answers`);
+  sleep(1);
   check(res, {
     'status was 200': (r) => r.status === 200,
     'transaction time < 50ms': r => r.timings.duration < 50,
@@ -24,5 +25,4 @@ export default function () {
     'transaction time < 1000ms': r => r.timings.duration < 1000,
     'transaction time < 2000ms': r => r.timings.duration < 2000,
   });
-  sleep(1);
 }
