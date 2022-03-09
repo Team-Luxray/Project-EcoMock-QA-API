@@ -18,20 +18,20 @@ router.get('/qa/questions', async (req, res) => {
       SELECT
         question_id,
         question_body,
-        question_date_written,
+        question_date_written AS question_date,
         asker_name,
-        question_reported,
-        question_helpful,
+        question_helpful AS question_helpfulness,
+        question_reported AS reported,
         (SELECT
-          json_agg(
+          json_object_agg(
+            answer_id,
             json_build_object(
-              'answer_id', answer_id,
-              'answer_body', answer_body,
-              'answer_date_written', answer_date_written,
+              'id', answer_id,
+              'body', answer_body,
+              'date', answer_date_written,
               'answerer_name', answerer_name,
-              'answer_reported', answer_reported,
-              'answer_helpful', answer_helpful,
-              'answer_photos',
+              'helpfulness', answer_helpful,
+              'photos',
               (SELECT
                 array_remove(array_agg(DISTINCT photo_url), NULL)
                 FROM photos
@@ -41,7 +41,7 @@ router.get('/qa/questions', async (req, res) => {
           )
         FROM answers
         WHERE question_id = questions.question_id AND answer_reported = false
-        ) AS question_answers
+        ) AS answers
       FROM questions
       WHERE product_id = $1 AND question_reported = false
       LIMIT $2
@@ -70,16 +70,15 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
     const { rows } = await db.query(
       `SELECT
         answer_id,
-        answer_body,
-        answer_date_written,
+        answer_body AS body,
+        answer_date_written AS date,
         answerer_name,
-        answer_reported,
-        answer_helpful,
+        answer_helpful AS helpfulness,
         (SELECT
           array_remove(array_agg(DISTINCT photo_url), NULL)
           FROM photos
           WHERE answer_id = answers.answer_id
-        ) AS answer_photos
+        ) AS photos
       FROM answers
       WHERE question_id = $1
       AND answer_reported = false
@@ -88,7 +87,7 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
       [question_id, count, offset]
     );
     const result = {
-      question_id: question_id,
+      question: question_id,
       page: page,
       count: count,
       results: rows
