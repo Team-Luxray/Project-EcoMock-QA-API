@@ -14,8 +14,7 @@ router.get('/qa/questions', async (req, res) => {
     const count = req.query.count || 5;
     const offset = count * page - count
     const { rows } = await db.query(
-      `
-      SELECT
+      `SELECT
         question_id,
         question_body,
         question_date_written AS question_date,
@@ -78,7 +77,7 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
           WHERE answer_id = answers.answer_id
         ) AS photos
       FROM answers
-      WHERE question_id = $1
+      WHERE question_id = 2
       AND answer_reported = false
       LIMIT $2
       OFFSET $3`,
