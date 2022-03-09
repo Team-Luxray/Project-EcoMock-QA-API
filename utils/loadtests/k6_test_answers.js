@@ -5,7 +5,8 @@ import { Counter } from 'k6/metrics';
 export const requests = new Counter('http_reqs');
 
 export const options = {
-  stages: [{duration: '5s', target: 100}, {duration: '10s', target: 500}, {duration: '5s', target: 100}]
+  vus: 100,
+  duration: '15s'
 };
 
 
