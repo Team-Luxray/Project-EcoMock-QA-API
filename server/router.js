@@ -31,14 +31,19 @@ router.get('/qa/questions', async (req, res) => {
               'answerer_name', answerer_name,
               'answer_reported', answer_reported,
               'answer_helpful', answer_helpful,
-              'answer_photos', (SELECT array_remove(array_agg(DISTINCT photo_url), NULL) FROM photos WHERE answer_id = answers.answer_id)
+              'answer_photos',
+              (SELECT
+                array_remove(array_agg(DISTINCT photo_url), NULL)
+                FROM photos
+                WHERE answer_id = answers.answer_id
+              )
             )
           )
         FROM answers
         WHERE question_id = questions.question_id AND answer_reported = false
         ) AS question_answers
       FROM questions
-      WHERE product_id = 71 AND question_reported = false
+      WHERE product_id = $1 AND question_reported = false
       LIMIT $2
       OFFSET $3`,
       [product_id, count, offset]
@@ -70,7 +75,11 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
         answerer_name,
         answer_reported,
         answer_helpful,
-        (SELECT array_remove(array_agg(DISTINCT photo_url), NULL) FROM photos WHERE answer_id = answers.answer_id) AS answer_photos
+        (SELECT
+          array_remove(array_agg(DISTINCT photo_url), NULL)
+          FROM photos
+          WHERE answer_id = answers.answer_id
+        ) AS answer_photos
       FROM answers
       WHERE question_id = $1
       AND answer_reported = false
