@@ -13,6 +13,7 @@ app.use(morgan('dev'));
 
 // routes
 app.use('/api', router);
+app.use('/', router);
 
 // listen to port
 app.listen(port, () => {

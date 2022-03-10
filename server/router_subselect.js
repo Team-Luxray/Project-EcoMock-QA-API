@@ -1,3 +1,4 @@
+require('dotenv').config()
 const Router = require('express-promise-router');
 const db = require('../database');
 
@@ -5,6 +6,15 @@ const db = require('../database');
 // this has the same API as the normal express router except
 // it allows you to use async functions as route handlers
 const router = new Router();
+
+// connect server to loader.io
+router.get('/loaderio-db3ade7f9c6502c53ad4cbbaa75040af', async (req, res) => {
+  try {
+    res.send(process.env.LOADERIO_TOKEN);
+  } catch (error) {
+    res.send(error);
+  }
+});
 
 // route to list questions and answers for a given product
 router.get('/qa/questions', async (req, res) => {
