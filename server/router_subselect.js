@@ -63,7 +63,7 @@ router.get('/qa/questions', async (req, res) => {
     }
     res.status(200).send(result);
   } catch (error) {
-    res.status(400).send(error);
+    res.status(200).send(error);
   }
 });
 
@@ -101,7 +101,7 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
     }
     res.status(200).send(result);
   } catch (error) {
-    res.status(400).send(error);
+    res.status(200).send(error);
   }
 });
 
