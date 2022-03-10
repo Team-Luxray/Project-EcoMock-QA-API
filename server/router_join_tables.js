@@ -15,34 +15,33 @@ router.get('/qa/questions', async (req, res) => {
     const offset = count * page - count
     const { rows } = await db.query(
       `SELECT
-        question_id,
-        question_body,
-        question_date_written AS question_date,
-        asker_name,
-        question_helpful AS question_helpfulness,
-        question_reported AS reported,
-        (SELECT
-          json_object_agg(
-            answer_id,
-            json_build_object(
-              'id', answer_id,
-              'body', answer_body,
-              'date', answer_date_written,
-              'answerer_name', answerer_name,
-              'helpfulness', answer_helpful,
-              'photos',
-              (SELECT
-                array_remove(array_agg(DISTINCT photo_url), NULL)
-                FROM photos
-                WHERE answer_id = answers.answer_id
-              )
+        q.question_id,
+        q.question_body,
+        q.question_date_written AS question_date,
+        q.asker_name,
+        q.question_helpful AS question_helpfulness,
+        q.question_reported AS reported,
+        json_object_agg(
+          a.answer_id,
+          json_build_object(
+            'id', a.answer_id,
+            'body', a.answer_body,
+            'date', a.answer_date_written,
+            'answerer_name', a.answerer_name,
+            'helpfulness', a.answer_helpful,
+            'photos',
+            (SELECT
+              array_remove(array_agg(DISTINCT photo_url), NULL)
+              FROM photos
+              WHERE answer_id = a.answer_id
             )
           )
-        FROM answers
-        WHERE question_id = questions.question_id AND answer_reported = false
         ) AS answers
-      FROM questions
+      FROM questions AS q
+      LEFT JOIN answers AS a
+      USING (question_id)
       WHERE product_id = $1 AND question_reported = false
+      GROUP BY (question_id)
       LIMIT $2
       OFFSET $3`,
       [product_id, count, offset]
@@ -66,19 +65,18 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
     const offset = count * page - count
     const { rows } = await db.query(
       `SELECT
-        answer_id,
-        answer_body AS body,
-        answer_date_written AS date,
-        answerer_name,
-        answer_helpful AS helpfulness,
-        (SELECT
-          array_remove(array_agg(DISTINCT photo_url), NULL)
-          FROM photos
-          WHERE answer_id = answers.answer_id
-        ) AS photos
-      FROM answers
-      WHERE question_id = 2
-      AND answer_reported = false
+        a.answer_id,
+        a.answer_body AS body,
+        a.answer_date_written AS date,
+        a.answerer_name,
+        a.answer_helpful AS helpfulness,
+        array_remove(array_agg(DISTINCT p.photo_url), NULL) AS photos
+      FROM answers AS a
+      LEFT JOIN photos as p
+      USING (answer_id)
+      WHERE a.question_id = $1
+      AND a.answer_reported = false
+      GROUP BY answer_id
       LIMIT $2
       OFFSET $3`,
       [question_id, count, offset]
