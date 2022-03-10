@@ -67,9 +67,9 @@ router.get('/qa/questions', async (req, res) => {
 });
 
 // route to list answers for a given question
-router.get('/qa/questions/answers', async (req, res) => {
+router.get('/qa/questions/:question_id/answers', async (req, res) => {
   try {
-    const { question_id } = req.query.question_id;
+    const { question_id } = req.params;
     const page = req.query.page || 1;
     const count = req.query.count || 5;
     const offset = count * page - count
