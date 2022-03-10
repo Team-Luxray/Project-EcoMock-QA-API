@@ -8,7 +8,7 @@ const db = require('../database');
 const router = new Router();
 
 // connect server to loader.io
-router.get('/loaderio-db3ade7f9c6502c53ad4cbbaa75040af', async (req, res) => {
+router.get(`/${process.env.LOADERIO_TOKEN}`, async (req, res) => {
   try {
     res.send(process.env.LOADERIO_TOKEN);
   } catch (error) {
