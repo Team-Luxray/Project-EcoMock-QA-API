@@ -42,16 +42,16 @@ router.get('/qa/questions', async (req, res) => {
             'photos',
             (SELECT
               array_remove(array_agg(DISTINCT photo_url), NULL)
-              FROM photos
-              WHERE answer_id = a.answer_id
+              FROM photos as p
+              WHERE p.answer_id = a.answer_id
             )
           )
         ) AS answers
       FROM questions AS q
       LEFT JOIN answers AS a
       USING (question_id)
-      WHERE product_id = $1 AND question_reported = false
-      GROUP BY (question_id)
+      WHERE q.product_id = $1 AND q.question_reported = false
+      GROUP BY (q.question_id)
       LIMIT $2
       OFFSET $3`,
       [product_id, count, offset]

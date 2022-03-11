@@ -20,6 +20,7 @@ router.get('/loaderio-db3ade7f9c6502c53ad4cbbaa75040af', async (req, res) => {
 router.get('/qa/questions', async (req, res) => {
   try {
     const product_id = req.query.product_id;
+    console.log(product_id);
     const page = req.query.page || 1;
     const count = req.query.count || 5;
     const offset = count * page - count
@@ -34,17 +35,19 @@ router.get('/qa/questions', async (req, res) => {
         (SELECT
           json_object_agg(
             answer_id,
-            json_build_object(
-              'id', answer_id,
-              'body', answer_body,
-              'date', answer_date_written,
-              'answerer_name', answerer_name,
-              'helpfulness', answer_helpful,
-              'photos',
-              (SELECT
-                array_remove(array_agg(DISTINCT photo_url), NULL)
-                FROM photos
-                WHERE answer_id = answers.answer_id
+            json_strip_nulls(
+              json_build_object(
+                'id', answer_id,
+                'body', answer_body,
+                'date', answer_date_written,
+                'answerer_name', answerer_name,
+                'helpfulness', answer_helpful,
+                'photos',
+                (SELECT
+                  array_remove(array_agg(DISTINCT photo_url), NULL)
+                  FROM photos
+                  WHERE answer_id = answers.answer_id
+                )
               )
             )
           )
