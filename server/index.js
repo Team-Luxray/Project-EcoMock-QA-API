@@ -1,7 +1,7 @@
 require('dotenv').config()
 const express = require('express');
 const app = express();
-const router = require('./router_join_tables');
+const router = require('./router');
 const port = process.env.SERVER_PORT;
 const morgan = require('morgan');
 const cors = require('cors');
