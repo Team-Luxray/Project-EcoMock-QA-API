@@ -17,9 +17,10 @@ router.get(`/${process.env.LOADERIO_TOKEN}`, async (req, res) => {
 });
 
 // route to list questions and answers for a given product
-router.get('/qa/questions', async (req, res) => {
+router.get('/qa/questions/:product_id', async (req, res) => {
   try {
-    const product_id = req.query.product_id;
+    const { product_id } = req.params;
+    console.log(`PRODUCT ID: ${product_id}`)
     const page = req.query.page || 1;
     const count = req.query.count || 5;
     const offset = count * page - count
@@ -31,9 +32,9 @@ router.get('/qa/questions', async (req, res) => {
         q.asker_name,
         q.question_helpful AS question_helpfulness,
         q.question_reported AS reported,
-        json_object_agg(
-          a.answer_id,
-          json_strip_nulls(
+        COALESCE(
+          json_object_agg(
+            a.answer_id,
             json_build_object(
               'id', a.answer_id,
               'body', a.answer_body,
@@ -48,11 +49,12 @@ router.get('/qa/questions', async (req, res) => {
               )
             )
           )
-        ) AS answers
+          FILTER (WHERE a.answer_id IS NOT NULL)
+        )  AS answers
       FROM questions AS q
       LEFT JOIN answers AS a
       USING (question_id)
-      WHERE q.product_id = 641118 AND q.question_reported = false
+      WHERE q.product_id = $1 AND q.question_reported = false
       GROUP BY (q.question_id)
       LIMIT $2
       OFFSET $3`,

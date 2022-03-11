@@ -14,7 +14,7 @@ function getRandomProductId() {
 }
 
 export default function () {
-  const res = http.get(`http://localhost:3000/api/qa/questions/?product_id=${getRandomProductId()}`);
+  const res = http.get(`http://localhost:3000/api/qa/questions/${getRandomProductId()}`);
 
   sleep(1);
   check(res, {

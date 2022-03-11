@@ -17,7 +17,7 @@ router.get('/loaderio-db3ade7f9c6502c53ad4cbbaa75040af', async (req, res) => {
 });
 
 // route to list questions and answers for a given product
-router.get('/qa/questions/:question_id', async (req, res) => {
+router.get('/qa/questions/:product_id', async (req, res) => {
   try {
     const { product_id } = req.params;
     const page = req.query.page || 1;
