@@ -9,12 +9,13 @@ export const options = {
   duration: '15s'
 };
 
-function getRandomQuestionId() {
+function getRandomProductId() {
   return Math.floor(Math.random() * 1000011);
 }
 
 export default function () {
-  const res = http.get(`http://localhost:3000/api/qa/questions/${getRandomQuestionId()}`);
+  const res = http.get(`http://localhost:3000/api/qa/questions/?product_id=${getRandomProductId()}`);
+
   sleep(1);
   check(res, {
     'status was 200': (r) => r.status === 200,

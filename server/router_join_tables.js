@@ -33,24 +33,26 @@ router.get('/qa/questions', async (req, res) => {
         q.question_reported AS reported,
         json_object_agg(
           a.answer_id,
-          json_build_object(
-            'id', a.answer_id,
-            'body', a.answer_body,
-            'date', a.answer_date_written,
-            'answerer_name', a.answerer_name,
-            'helpfulness', a.answer_helpful,
-            'photos',
-            (SELECT
-              array_remove(array_agg(DISTINCT photo_url), NULL)
-              FROM photos as p
-              WHERE p.answer_id = a.answer_id
+          json_strip_nulls(
+            json_build_object(
+              'id', a.answer_id,
+              'body', a.answer_body,
+              'date', a.answer_date_written,
+              'answerer_name', a.answerer_name,
+              'helpfulness', a.answer_helpful,
+              'photos',
+              (SELECT
+                array_remove(array_agg(DISTINCT photo_url), NULL)
+                FROM photos as p
+                WHERE p.answer_id = a.answer_id
+              )
             )
           )
         ) AS answers
       FROM questions AS q
       LEFT JOIN answers AS a
       USING (question_id)
-      WHERE q.product_id = $1 AND q.question_reported = false
+      WHERE q.product_id = 641118 AND q.question_reported = false
       GROUP BY (q.question_id)
       LIMIT $2
       OFFSET $3`,
