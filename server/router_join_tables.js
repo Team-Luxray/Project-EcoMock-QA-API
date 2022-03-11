@@ -25,51 +25,68 @@ router.get('/qa/questions/:product_id', async (req, res) => {
     const count = req.query.count || 5;
     const offset = count * page - count
     const { rows } = await db.query(
-      `SELECT
-        q.question_id,
-        q.question_body,
-        q.question_date_written AS question_date,
-        q.asker_name,
-        q.question_helpful AS question_helpfulness,
-        q.question_reported AS reported,
-        COALESCE(
-          json_object_agg(
-            a.answer_id,
-            json_build_object(
-              'id', a.answer_id,
-              'body', a.answer_body,
-              'date', a.answer_date_written,
-              'answerer_name', a.answerer_name,
-              'helpfulness', a.answer_helpful,
-              'photos',
-              (SELECT
-                array_remove(array_agg(DISTINCT photo_url), NULL)
-                FROM photos as p
-                WHERE p.answer_id = a.answer_id
-              )
-            )
-          )
-          FILTER (WHERE a.answer_id IS NOT NULL)
-        )  AS answers
-      FROM questions AS q
-      LEFT JOIN answers AS a
-      USING (question_id)
-      WHERE q.product_id = $1 AND q.question_reported = false
-      GROUP BY (q.question_id)
-      LIMIT $2
-      OFFSET $3`,
+      `WITH
+        product_questions AS (
+          SELECT *
+          FROM questions
+          WHERE product_id = $1 AND question_reported = false
+          LIMIT $2
+          OFFSET $3
+        ),
+        product_questions_with_answers AS (
+          SELECT *
+          FROM product_questions
+          LEFT JOIN answers
+          USING (question_id)
+        ),
+        product_questions_with_answers_and_photos AS (
+          SELECT *
+          FROM product_questions_with_answers
+          LEFT JOIN photos
+          USING (answer_id)
+        )
+      SELECT * FROM product_questions_with_answers_and_photos`,
       [product_id, count, offset]
     );
+
+    let questions = {};
+    rows.forEach((row) => {
+      let id = row.question_id
+      if (!questions[id]) {
+        questions[id] = {
+          question_id: id,
+          question_body: row.question_body,
+          question_date: row.question_date,
+          asker_name: row.asker_name,
+          question_helpfulness: row.question_helpfulness,
+          reported: row.question_reported,
+          answers: {}
+        }
+      }
+      if (row.answer_id && !questions[id].answers[row.answer_id]) {
+        questions[id].answers[row.answer_id] = {
+          id: row.answer_id,
+          body: row.answer_body,
+          date: row.answer_date_written,
+          answerer_name: row.answerer_name,
+          helpfulness: row.answer_helpful,
+          photos: []
+        }
+      }
+      if (row.answer_id && row.photo_url) {
+        questions[id].answers[row.answer_id].photos.push(row.photo_url)
+      }
+    });
     const result = {
       product_id: product_id,
-      results: rows
+      results: Object.values(questions)
     }
     res.status(200).send(result);
   } catch (error) {
     res.status(400).send(error);
   }
 });
-
+// array_remove(array_agg(DISTINCT p.photo_url), NULL) AS photos
 // route to list answers for a given question
 router.get('/qa/questions/:question_id/answers', async (req, res) => {
   try {
@@ -78,29 +95,55 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
     const count = req.query.count || 5;
     const offset = count * page - count
     const { rows } = await db.query(
-      `SELECT
-        a.answer_id,
-        a.answer_body AS body,
-        a.answer_date_written AS date,
-        a.answerer_name,
-        a.answer_helpful AS helpfulness,
-        array_remove(array_agg(DISTINCT p.photo_url), NULL) AS photos
-      FROM answers AS a
-      LEFT JOIN photos as p
-      USING (answer_id)
-      WHERE a.question_id = $1
-      AND a.answer_reported = false
-      GROUP BY answer_id
-      LIMIT $2
-      OFFSET $3`,
+      `WITH
+        question_answers AS (
+          SELECT *
+          FROM answers
+          WHERE question_id = $1 AND answer_reported = false
+          LIMIT $2
+          OFFSET $3
+        ),
+        question_answers_with_photos AS (
+          SELECT *
+          FROM question_answers
+          LEFT JOIN photos
+          USING (answer_id)
+        )
+      SELECT * FROM question_answers_with_photos`,
       [question_id, count, offset]
     );
+
+    let answers = {};
+
+    rows.forEach((answer) => {
+      let id = answer.answer_id;
+      if (!answers[id]) {
+        answers[id] = {
+          answer_id: id,
+          body: answer.answer_body,
+          date: answer.answer_date_written,
+          answerer_name: answer.answerer_name,
+          helpfulness: answer.answer_helpful
+        };
+        if (!answer.photo_url) {
+          answers[id].photos = [];
+        } else {
+          answers[id].photos = [answer.photo_url];
+        }
+      } else {
+        if (answer.photos) {
+          answers[id].photos.push(answer.photo_url);
+        }
+      }
+    });
+
     const result = {
       question: question_id,
       page: page,
       count: count,
-      results: rows
+      results: Object.values(answers)
     }
+
     res.status(200).send(result);
   } catch (error) {
     res.status(400).send(error);

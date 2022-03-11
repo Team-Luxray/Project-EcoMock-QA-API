@@ -125,6 +125,9 @@ SELECT answer_id, url
 FROM photos_csv;
 
 -- create fk index for question_id on answers table
+CREATE INDEX questions_product_id_idx ON questions (product_id);
+
+-- create fk index for question_id on answers table
 CREATE INDEX answers_question_id_idx ON answers (question_id);
 
 -- create fk index for answer_id on photos table
