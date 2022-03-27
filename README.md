@@ -1,4 +1,4 @@
-# questions_answers_api
+# Project EcoMock Q&A API
 
 Hello World! (๑•́ ᵕ •̀๑)◞ This is an RESTFUL API endpoint for the Questions and Answers module for the Project EcoMock website. This updated API endpoint is a part of an legacy API overhaul.
 
